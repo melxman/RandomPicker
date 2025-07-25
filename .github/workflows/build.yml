@@ -20,6 +20,13 @@ jobs:
           sudo apt update
           sudo apt install -y openjdk-11-jdk git zip unzip
           pip install buildozer cython
+          
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install Build-Tools 29.0.0
+        run: |
+          sdkmanager --install "build-tools;29.0.0"
+          yes | sdkmanager --licenses    
 
       - name: Build APK
         run: |
