@@ -1,44 +1,60 @@
 name: Build APK
+
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:            # 手动触发按钮
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_ROOT: /usr/local/android-sdk
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      # 1. 系统依赖
       - name: Install system deps
         run: |
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk wget unzip
+
+      # 2. 预装 Android SDK + Build-Tools 29.0.0（一次性解决 aidl）
+      - name: Pre-install Android SDK
+        run: |
+          sudo mkdir -p $ANDROID_SDK_ROOT
+          cd $ANDROID_SDK_ROOT
+
+          # 下载命令行工具
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip -q commandlinetools-linux-9477386_latest.zip
+          mv cmdline-tools cmdline-tools-tmp
+          mkdir cmdline-tools
+          mv cmdline-tools-tmp cmdline-tools/latest
+
+          # 安装 Build-Tools 29.0.0（含 aidl）
+          export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
+          sdkmanager --install "build-tools;29.0.0" --channel=0
+          yes | sdkmanager --licenses
+
+      # 3. Buildozer
+      - name: Install Buildozer
+        run: |
           pip install buildozer cython
 
-      - name: Install Android SDK Build-Tools 29.0.0
-        run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools
-          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
-          export PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin
-          sdkmanager --sdk_root=$HOME/android-sdk "build-tools;29.0.0"
-          yes | sdkmanager --sdk_root=$HOME/android-sdk --licenses
-
+      # 4. 编译 APK
       - name: Build APK
-        env:
-          ANDROID_SDK_ROOT: $HOME/android-sdk
         run: |
           buildozer android debug --compressed
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      # 5. 上传
+      - uses: actions/upload-artifact@v4
         with:
           name: RandomPicker-debug
           path: bin/RandomPicker-debug.apk
