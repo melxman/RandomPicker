@@ -21,8 +21,8 @@ jobs:
 
       - name: Install system & Python deps
         run: 
-          sudo apt-get update
-          sudo apt-get install -y openjdk-11-jdk git zip unzip build-essential
+          sudo apt update
+          sudo apt install -y openjdk-11-jdk git zip unzip 
           pip install buildozer cython
           
       - name: Accept Android SDK licenses
