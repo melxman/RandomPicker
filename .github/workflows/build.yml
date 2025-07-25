@@ -23,6 +23,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y openjdk-11-jdk
           pip install buildozer cython
+          
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager "platform-tools" "build-tools;36.0.0"
 
       - name: Build APK
         run: |
