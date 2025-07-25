@@ -1,5 +1,4 @@
 name: Build APK
-
 on:
   push:
     branches: [ main ]
@@ -7,53 +6,28 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # 明确使用 24.04，它自带 SDK
     env:
-      ANDROID_SDK_ROOT: /usr/local/android-sdk
+      # 使用镜像预置的 SDK，不再自己安装
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      ANDROID_NDK_ROOT: /usr/local/lib/android/sdk/ndk/27.3.13750724  # 镜像已装 27.3
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # 1. 系统依赖
-      - name: Install system deps
+      - name: Install系统依赖
         run: |
           sudo apt-get update
-          sudo apt-get install -y openjdk-11-jdk wget unzip
-
-      # 2. 预装 Android SDK + Build-Tools 29.0.0（一次性解决 aidl）
-      - name: Pre-install Android SDK
-        run: |
-          sudo mkdir -p $ANDROID_SDK_ROOT
-          cd $ANDROID_SDK_ROOT
-
-          # 下载命令行工具
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip -q commandlinetools-linux-9477386_latest.zip
-          mv cmdline-tools cmdline-tools-tmp
-          mkdir cmdline-tools
-          mv cmdline-tools-tmp cmdline-tools/latest
-
-          # 安装 Build-Tools 29.0.0（含 aidl）
-          export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin
-          sdkmanager --install "build-tools;29.0.0" --channel=0
-          yes | sdkmanager --licenses
-
-      # 3. Buildozer
-      - name: Install Buildozer
-        run: |
+          sudo apt-get install -y openjdk-11-jdk
           pip install buildozer cython
 
-      # 4. 编译 APK
       - name: Build APK
         run: |
           buildozer android debug --compressed
 
-      # 5. 上传
       - uses: actions/upload-artifact@v4
         with:
           name: RandomPicker-debug
