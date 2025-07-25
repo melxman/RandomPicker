@@ -1,0 +1,32 @@
+name: Build APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:            # 手动触发按钮
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Buildozer deps
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-11-jdk git zip unzip
+          pip install buildozer cython
+
+      - name: Build APK
+        run: |
+          buildozer android debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: RandomPicker-debug
+          path: bin/RandomPicker-debug.apk
