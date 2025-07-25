@@ -1,0 +1,11 @@
+# 把几乎用不到的库全部排除
+lib2to3/*
+test/*
+tkinter/*
+turtle/*
+idlelib/*
+ensurepip/*
+distutils/*
+sqlite3/test/*
+unittest/*
+multiprocessing/*

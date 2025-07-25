@@ -7,7 +7,11 @@ source.include_exts = py
 requirements = python3,kivy
 orientation = portrait
 android.permissions = INTERNET
-android.archs = arm64-v8a,armeabi-v7a
+android.archs = arm64-v8a
 [buildozer]
 log_level = 2
 warn_on_root = 1
+android.debug_build = False      # 原来是 True
+android.ndk_api = 24             # ≥24 即可，越小越好
+android.add_aars =
+android.blacklist_src = blacklist.txt
